@@ -5,7 +5,7 @@ import Link from "next/link";
 const Hero = () => {
   return (
     <div
-      className="h-screen flex w-full relative overflow-hidden"
+      className="h-fit min-h-screen flex w-full relative overflow-hidden"
       style={{
         background: "linear-gradient(180deg, #CCC3FF 0%, #030014 100%)",
       }}
