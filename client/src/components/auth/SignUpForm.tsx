@@ -2,13 +2,10 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
-import { auth } from "@/firebase/client";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import axios from "axios";
 
 // UI Components
 import { Button } from "../ui/button";
