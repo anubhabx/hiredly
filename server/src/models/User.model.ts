@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  photoURL: {
+    type: String,
+    default: "https://avatar.iran.liara.run/public",
+  },
 });
 
 const User = mongoose.model("User", userSchema);

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import axios from "axios";
 
 // UI Components
 import { Button } from "../ui/button";
@@ -22,10 +23,12 @@ import {
 import { Input } from "../ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { setSessionToken } from "@/lib/actions/auth.actions";
+import { useSignUpMutation } from "@/state/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // Schema for form validation
 const signUpSchema = z.object({
-  name: z.string().min(1, { message: "Name is required." }),
+  displayName: z.string().min(1, { message: "Name is required." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z
     .string()
@@ -38,10 +41,13 @@ const SignUpForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [signUp] = useSignUpMutation();
+  const { signUpWithEmailAndPassword } = useAuth(); // Move the hook call to the top level
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
+      displayName: "",
       email: "",
       password: "",
     },
@@ -53,35 +59,27 @@ const SignUpForm = () => {
 
     try {
       // Create user in Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const userCredential = await signUpWithEmailAndPassword(
         data.email,
-        data.password
+        data.password,
+        data.displayName
       );
 
       // Get the user's ID token
       const idToken = await userCredential.user.getIdToken();
 
       // Send the token to your backend to create a user in your DB
-      const response = await fetch("http://localhost:3000/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: data.name,
-          uid: userCredential.user.uid,
-          email: data.email,
-          idToken,
-        }),
-      });
+      const response = await signUp({
+        uid: userCredential.user.uid,
+        name: data.displayName,
+        email: data.email,
+        idToken,
+      }).unwrap();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register user");
-      }
+      console.log("Sign up response:", response);
 
-      console.log("User registered successfully:", response);
+      // Set the session token in local storage or cookies
+      setSessionToken(idToken);
 
       // Redirect to dashboard on success
       router.push("/dashboard");
@@ -117,12 +115,16 @@ const SignUpForm = () => {
 
               <FormField
                 control={form.control}
-                name="name"
+                name="displayName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
+                        autoComplete="name"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -136,7 +138,11 @@ const SignUpForm = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="email@example.com" {...field} />
+                      <Input
+                        placeholder="email@example.com"
+                        {...field}
+                        autoComplete="email"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,6 +159,7 @@ const SignUpForm = () => {
                       <Input
                         type="password"
                         placeholder="********"
+                        autoComplete="current-password"
                         {...field}
                       />
                     </FormControl>

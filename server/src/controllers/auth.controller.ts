@@ -3,7 +3,7 @@ import User from "../models/User.model";
 import { auth } from "../firebase/admin";
 
 export const signUp = async (req: Request, res: Response): Promise<void> => {
-  const { name, uid, email, password, idToken } = req.body;
+  const { name, uid, email, photoURL, idToken } = req.body;
 
   try {
     const userRecord = await User.findOne({ uid });
@@ -16,7 +16,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       uid,
       name,
       email,
-      password,
+      photoURL,
     });
 
     await newUser.save();
@@ -25,7 +25,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       expiresIn: 60 * 60 * 24 * 7 * 1000, // 7 days
     });
 
-    res.status(201).json({ success: true, sessionCookie });
+    res.status(201).json({ success: true, sessionCookie: sessionCookie });
   } catch (error: any) {
     console.error("Failed to sign up a user", error);
 

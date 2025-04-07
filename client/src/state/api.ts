@@ -31,5 +31,15 @@ const customBaseQuery = async (
 export const api = createApi({
   reducerPath: "api",
   baseQuery: customBaseQuery,
-  endpoints: (builder) => ({}),
+  endpoints: (builder) => ({
+    signUp: builder.mutation({
+      query: (data) => ({
+        url: "/auth/signup",
+        method: "POST",
+        body: data,
+      }),
+    }),
+  }),
 });
+
+export const { useSignUpMutation } = api;

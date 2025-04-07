@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import FontProvider from "@/components/providers/FontProvider";
+import StateProvider from "@/components/providers/StateProvider";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Hiredly",
@@ -19,7 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <FontProvider>{children}</FontProvider>
+        <StateProvider>
+          <Suspense fallback={null}>
+            <FontProvider>{children}</FontProvider>
+          </Suspense>
+        </StateProvider>
       </body>
     </html>
   );
